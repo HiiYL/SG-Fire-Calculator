@@ -51,25 +51,25 @@ export function GlobeVisualization({
   // Calculate feasibility score for each country (0-1)
   const countryData = useMemo(() => {
     const sgdToUsd = 0.74
-    const annualWithdrawal = portfolioValue * withdrawalRate * sgdToUsd
-    const monthlyBudget = annualWithdrawal / 12
+    const portfolioInUSD = portfolioValue * sgdToUsd
+    void withdrawalRate // Kept for interface compatibility
 
     return countries.map((country) => {
       const countryCost = country.costOfLiving.total[selectedBudget]
-      // Score: how many times over budget you are (capped at 2x for color scale)
-      const affordabilityRatio = monthlyBudget / countryCost
-      // Normalize to 0-1 where 1 = very affordable, 0 = not affordable
-      const score = Math.min(Math.max(affordabilityRatio / 2, 0), 1)
-      
-      // Calculate years of runway
       const annualCost = countryCost * 12
-      const yearsRunway = annualWithdrawal / annualCost
-
+      
+      // Calculate years of runway: total portfolio / annual spending
+      const yearsRunway = portfolioInUSD / annualCost
+      
+      // Score based on years of runway (25+ years = fully affordable)
+      // 0 years = 0, 25+ years = 1
+      const score = Math.min(yearsRunway / 25, 1)
+      
       return {
         ...country,
         score,
         yearsRunway,
-        affordable: affordabilityRatio >= 1,
+        affordable: yearsRunway >= 25,
         color: getColorForScore(score),
         size: score * 0.8 + 0.3, // Size based on affordability
       }

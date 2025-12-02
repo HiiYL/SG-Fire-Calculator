@@ -39,6 +39,7 @@ import {
   RotateCcw,
   Check,
   Keyboard,
+  AlertTriangle,
 } from "lucide-react"
 
 function App() {
@@ -199,6 +200,22 @@ function App() {
     currentAge,
   ])
 
+  // FIRE number calculation - how much you need based on selected budget and country average
+  const fireNumber = useMemo(() => {
+    // Average cost across all countries for selected budget
+    const avgMonthlyCost = countries.reduce((sum, c) => sum + c.costOfLiving.total[selectedBudget], 0) / countries.length
+    const annualExpenses = avgMonthlyCost * 12
+    const sgdToUsd = 0.74
+    // FIRE number = annual expenses / withdrawal rate, converted to SGD
+    return (annualExpenses / withdrawalRate) / sgdToUsd
+  }, [selectedBudget, withdrawalRate])
+
+  // Progress towards FIRE
+  const fireProgress = useMemo(() => {
+    const currentTotal = includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement
+    return Math.min((currentTotal / fireNumber) * 100, 100)
+  }, [combinedPortfolio, fireResult.portfolioAtRetirement, fireNumber, includeCPF])
+
   // Country comparison data
   const countryComparisonData = useMemo(() => {
     return countries.map((c) => ({
@@ -210,21 +227,24 @@ function App() {
   }, [])
 
   // Runway data - uses combined portfolio (cash + CPF)
+  // This calculates how many years your portfolio will last at each country's cost of living
   const runwayData = useMemo(() => {
     const sgdToUsd = 0.74
     const portfolioToUse = includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement
-    const annualWithdrawal = portfolioToUse * withdrawalRate * sgdToUsd
+    const portfolioInUSD = portfolioToUse * sgdToUsd
 
     return countries.map((c) => {
       const annualBudget = c.costOfLiving.total[selectedBudget] * 12
-      const years = annualWithdrawal / annualBudget
+      // Simple runway: total portfolio / annual spending
+      // This doesn't account for investment returns, but gives a baseline
+      const years = portfolioInUSD / annualBudget
       return {
         country: c.name,
         years: Math.min(years, 100),
         flag: c.flag,
       }
     })
-  }, [combinedPortfolio, fireResult.portfolioAtRetirement, withdrawalRate, selectedBudget, includeCPF])
+  }, [combinedPortfolio, fireResult.portfolioAtRetirement, selectedBudget, includeCPF])
 
   const retirementAge = currentAge + yearsToRetirement
 
@@ -419,6 +439,52 @@ function App() {
                   </div>
                 </div>
               </div>
+
+              {/* Quick Presets */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm text-gray-500">Quick presets:</span>
+                  <button
+                    onClick={() => {
+                      updateField("currentSavings", 100000)
+                      updateField("monthlyContribution", 3000)
+                      updateField("yearsToRetirement", 15)
+                      updateField("expectedReturn", 0.07)
+                      updateField("withdrawalRate", 0.04)
+                      updateField("selectedBudget", "frugal")
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+                  >
+                    🚀 Aggressive Saver
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateField("currentSavings", 300000)
+                      updateField("monthlyContribution", 2000)
+                      updateField("yearsToRetirement", 10)
+                      updateField("expectedReturn", 0.06)
+                      updateField("withdrawalRate", 0.04)
+                      updateField("selectedBudget", "moderate")
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+                  >
+                    ⚖️ Balanced
+                  </button>
+                  <button
+                    onClick={() => {
+                      updateField("currentSavings", 500000)
+                      updateField("monthlyContribution", 1000)
+                      updateField("yearsToRetirement", 5)
+                      updateField("expectedReturn", 0.05)
+                      updateField("withdrawalRate", 0.035)
+                      updateField("selectedBudget", "comfortable")
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors"
+                  >
+                    🏖️ Near Retirement
+                  </button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </section>
@@ -438,6 +504,31 @@ function App() {
             onSalaryChange={(v) => updateField("monthlySalary", v)}
           />
         </section>
+
+        {/* Warnings */}
+        {(withdrawalRate > 0.045 || expectedReturn > 0.09 || yearsToRetirement < 5) && (
+          <section className="mb-6">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-medium text-amber-800">Consider reviewing your assumptions</p>
+                  <ul className="text-sm text-amber-700 space-y-1">
+                    {withdrawalRate > 0.045 && (
+                      <li>• Withdrawal rate above 4.5% increases risk of running out of money</li>
+                    )}
+                    {expectedReturn > 0.09 && (
+                      <li>• Expected return above 9% may be optimistic for long-term planning</li>
+                    )}
+                    {yearsToRetirement < 5 && (
+                      <li>• Short time horizon limits compound growth potential</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Summary Stats */}
         <section className="mb-8">
@@ -516,7 +607,7 @@ function App() {
                   {formatDisplay((includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement) * withdrawalRate / 12, "SGD")}
                 </p>
                 <p className="text-sm opacity-80 mt-1">
-                  {displayCurrency === "SGD" ? "4% SWR" : "4% SWR"}
+                  {(withdrawalRate * 100).toFixed(1)}% SWR
                 </p>
               </CardContent>
             </Card>
@@ -546,6 +637,40 @@ function App() {
                 <p className="text-sm opacity-80 mt-1">
                   {includeCPF ? "Cash + CPF" : "Cash only"}
                 </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* FIRE Progress Bar */}
+          <div className="mt-6">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">FIRE Progress</span>
+                  <span className="text-sm text-gray-500">
+                    Target: {formatDisplay(fireNumber, "SGD")} ({selectedBudget} lifestyle)
+                  </span>
+                </div>
+                <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      fireProgress >= 100 ? 'bg-green-500' : fireProgress >= 75 ? 'bg-blue-500' : fireProgress >= 50 ? 'bg-amber-500' : 'bg-red-400'
+                    }`}
+                    style={{ width: `${fireProgress}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <span className={`text-sm font-medium ${fireProgress >= 100 ? 'text-green-600' : 'text-gray-600'}`}>
+                    {fireProgress.toFixed(0)}% of FIRE goal
+                  </span>
+                  {fireProgress >= 100 ? (
+                    <span className="text-sm text-green-600 font-medium">🎉 You've reached FIRE!</span>
+                  ) : (
+                    <span className="text-sm text-gray-500">
+                      {formatDisplay(fireNumber - (includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement), "SGD")} to go
+                    </span>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -839,6 +964,24 @@ function App() {
           displayCurrency={displayCurrency}
         />
       )}
+
+      {/* Footer */}
+      <footer className="bg-gray-50 border-t mt-16">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="text-center text-sm text-gray-500 space-y-2">
+            <p>
+              <strong>Disclaimer:</strong> This calculator is for educational purposes only. 
+              Actual returns, costs, and visa requirements may vary. Consult a financial advisor before making decisions.
+            </p>
+            <p>
+              Cost of living data is approximate and based on 2024 estimates. Exchange rates fluctuate.
+            </p>
+            <p className="text-gray-400 mt-4">
+              Built with ❤️ for Singaporeans planning their FIRE journey abroad
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

@@ -37,9 +37,12 @@ export function CountryCard({
   const annualBudget = monthlyBudget * 12
   const sgdToUsd = 0.74
   const usdToSgd = 1 / sgdToUsd
-  const annualWithdrawal = portfolioValue * withdrawalRate * sgdToUsd
-  const yearsOfRunway = annualWithdrawal / annualBudget
+  // Calculate years of runway: total portfolio in USD / annual spending
+  const portfolioInUSD = portfolioValue * sgdToUsd
+  const yearsOfRunway = portfolioInUSD / annualBudget
+  // Consider affordable if runway is 25+ years (typical retirement horizon)
   const canAfford = yearsOfRunway >= 25
+  void withdrawalRate // Kept for interface compatibility
 
   // Convert USD cost to display currency
   const formatCost = (usdAmount: number) => {
