@@ -2,6 +2,8 @@
 
 A comprehensive FIRE (Financial Independence, Retire Early) calculator for Singaporeans planning to retire abroad. Compare cost of living, visa requirements, and run rate simulations across multiple countries.
 
+View here: https://hiiyl.github.io/SG-Fire-Calculator/
+
 ## Features
 
 ### 💰 Financial Planning
