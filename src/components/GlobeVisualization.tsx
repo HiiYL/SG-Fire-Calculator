@@ -14,6 +14,29 @@ interface GlobeVisualizationProps {
 // Singapore coordinates for initial view
 const SINGAPORE = { lat: 1.3521, lng: 103.8198 }
 
+// Color scale: red (not affordable) -> yellow (borderline) -> green (affordable)
+function getColorForScore(score: number): string {
+  if (score < 0.4) {
+    // Red to orange
+    const r = 239
+    const g = Math.round(68 + (score / 0.4) * 100)
+    const b = 68
+    return `rgb(${r}, ${g}, ${b})`
+  } else if (score < 0.7) {
+    // Orange to yellow
+    const r = 239
+    const g = Math.round(168 + ((score - 0.4) / 0.3) * 87)
+    const b = 68
+    return `rgb(${r}, ${g}, ${b})`
+  } else {
+    // Yellow to green
+    const r = Math.round(239 - ((score - 0.7) / 0.3) * 205)
+    const g = Math.round(255 - ((score - 0.7) / 0.3) * 50)
+    const b = Math.round(68 + ((score - 0.7) / 0.3) * 60)
+    return `rgb(${r}, ${g}, ${b})`
+  }
+}
+
 export function GlobeVisualization({
   countries,
   selectedBudget,
@@ -22,6 +45,7 @@ export function GlobeVisualization({
   onCountryClick,
   focusedCountry,
 }: GlobeVisualizationProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null)
 
   // Calculate feasibility score for each country (0-1)
@@ -52,29 +76,6 @@ export function GlobeVisualization({
     })
   }, [countries, selectedBudget, portfolioValue, withdrawalRate])
 
-  // Color scale: red (not affordable) -> yellow (borderline) -> green (affordable)
-  function getColorForScore(score: number): string {
-    if (score < 0.4) {
-      // Red to orange
-      const r = 239
-      const g = Math.round(68 + (score / 0.4) * 100)
-      const b = 68
-      return `rgb(${r}, ${g}, ${b})`
-    } else if (score < 0.7) {
-      // Orange to yellow
-      const r = 239
-      const g = Math.round(168 + ((score - 0.4) / 0.3) * 87)
-      const b = 68
-      return `rgb(${r}, ${g}, ${b})`
-    } else {
-      // Yellow to green
-      const r = Math.round(239 - ((score - 0.7) / 0.3) * 205)
-      const g = Math.round(255 - ((score - 0.7) / 0.3) * 50)
-      const b = Math.round(68 + ((score - 0.7) / 0.3) * 60)
-      return `rgb(${r}, ${g}, ${b})`
-    }
-  }
-
   // Initial view centered on Singapore
   useEffect(() => {
     if (globeRef.current) {
@@ -96,10 +97,13 @@ export function GlobeVisualization({
     }
   }, [focusedCountry])
 
-  const handlePointClick = useCallback((point: any) => {
-    const country = countries.find(c => c.id === point.id)
-    if (country) {
-      onCountryClick(country)
+  const handlePointClick = useCallback((point: object) => {
+    const p = point as { id?: string }
+    if (p.id) {
+      const country = countries.find(c => c.id === p.id)
+      if (country) {
+        onCountryClick(country)
+      }
     }
   }, [countries, onCountryClick])
 
@@ -143,7 +147,9 @@ export function GlobeVisualization({
         pointColor="color"
         pointAltitude={0.01}
         pointRadius="size"
-        pointLabel={(d: any) => `
+        pointLabel={(obj: object) => {
+          const d = obj as { label: string; yearsRunway: number; affordable: boolean }
+          return `
           <div class="bg-white/95 backdrop-blur px-3 py-2 rounded-lg shadow-lg text-sm">
             <div class="font-bold text-gray-900">${d.label}</div>
             <div class="text-gray-600">
@@ -153,7 +159,7 @@ export function GlobeVisualization({
               ${d.affordable ? '✓ Affordable' : '✗ Over budget'}
             </div>
           </div>
-        `}
+        `}}
         onPointClick={handlePointClick}
         
         // Arcs from Singapore

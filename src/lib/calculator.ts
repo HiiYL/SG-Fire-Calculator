@@ -242,8 +242,7 @@ export function runMonteCarloSimulation(
 // Calculate how much monthly budget you can afford in different countries
 export function calculateAffordableBudget(
   portfolioValue: number,
-  withdrawalRate: number,
-  exchangeRate: number // Local currency to SGD
+  withdrawalRate: number
 ): { monthly: number; annual: number } {
   const annualWithdrawalSGD = portfolioValue * withdrawalRate
   const monthlyWithdrawalSGD = annualWithdrawalSGD / 12

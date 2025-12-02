@@ -49,13 +49,14 @@ export function CountryProjection({
   portfolioAtRetirement,
   retirementAge,
   selectedBudget,
-  withdrawalRate,
+  withdrawalRate: _withdrawalRate,
   onViewDetails,
   expectedReturn,
   inflationRate,
   onClose,
   displayCurrency = "SGD",
 }: CountryProjectionProps) {
+  void _withdrawalRate // Used in interface but calculations use actual spending
   const sgdToUsd = 0.74
   const usdToSgd = 1 / sgdToUsd
   const monthlyBudget = country.costOfLiving.total[selectedBudget]

@@ -77,12 +77,12 @@ function App() {
     return formatCurrency(converted, displayCurrency)
   }
 
-  const cpfBalances: CPFBalances = {
+  const cpfBalances: CPFBalances = useMemo(() => ({
     OA: state.cpfOA,
     SA: state.cpfSA,
     MA: state.cpfMA,
     total: state.cpfOA + state.cpfSA + state.cpfMA,
-  }
+  }), [state.cpfOA, state.cpfSA, state.cpfMA])
 
   // UI-only state (not persisted)
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null)
