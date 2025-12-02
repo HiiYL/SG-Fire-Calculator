@@ -5,9 +5,9 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // For GitHub Pages: set base to repo name (e.g., '/sg-fire-calculator/')
+  // For GitHub Pages: set base to repo name (case-sensitive!)
   // For custom domain or root deployment, use '/'
-  base: process.env.GITHUB_PAGES ? '/sg-fire-calculator/' : '/',
+  base: process.env.GITHUB_PAGES ? '/SG-Fire-Calculator/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
