@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from "react"
+import { useState, useMemo, lazy, Suspense, useCallback } from "react"
 import "./App.css"
 import { countries } from "@/data/countries"
 import type { Country } from "@/data/countries"
@@ -7,6 +7,8 @@ import type { CPFBalances } from "@/lib/cpf"
 import { projectCPF } from "@/lib/cpf"
 import { formatCurrency } from "@/lib/utils"
 import { usePersistedState } from "@/hooks/usePersistedState"
+import { useDarkMode } from "@/hooks/useDarkMode"
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { CountryCard } from "@/components/CountryCard"
 import { CountryDetail } from "@/components/CountryDetail"
 import { CountryProjection } from "@/components/CountryProjection"
@@ -37,12 +39,19 @@ import {
   Share2,
   RotateCcw,
   Check,
+  Moon,
+  Sun,
+  Keyboard,
 } from "lucide-react"
 
 function App() {
   // Persisted state (localStorage + URL sharing)
   const { state, updateField, copyShareableUrl, resetToDefaults } = usePersistedState()
   const [copied, setCopied] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+
+  // Dark mode
+  const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
   // Derived state from persisted state
   const currentAge = state.currentAge
@@ -89,13 +98,31 @@ function App() {
   const [focusedCountry, setFocusedCountry] = useState<Country | null>(null)
 
   // Handle share button
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     const success = await copyShareableUrl()
     if (success) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
-  }
+  }, [copyShareableUrl])
+
+  // Toggle currency
+  const toggleCurrency = useCallback(() => {
+    updateField("displayCurrency", displayCurrency === "SGD" ? "USD" : "SGD")
+  }, [displayCurrency, updateField])
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onShare: handleShare,
+    onReset: resetToDefaults,
+    onToggleDarkMode: toggleDarkMode,
+    onToggleCurrency: toggleCurrency,
+    onEscape: () => {
+      setFocusedCountry(null)
+      setSelectedCountry(null)
+      setShowShortcuts(false)
+    },
+  })
 
   // CPF projection
   const cpfProjection = useMemo(() => {
@@ -209,9 +236,9 @@ function App() {
   const retirementAge = currentAge + yearsToRetirement
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 transition-colors">
       {/* Header */}
-      <header className="bg-white border-b shadow-sm sticky top-0 z-40">
+      <header className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm sticky top-0 z-40 transition-colors">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -219,24 +246,46 @@ function App() {
                 <Calculator className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                   SG FIRE Calculator
                 </h1>
-                <p className="text-sm text-gray-500 hidden sm:block">
+                <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
                   Plan your retirement abroad from Singapore
                 </p>
               </div>
             </div>
-            {/* Currency Toggle */}
+            {/* Controls */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 hidden sm:inline">Display:</span>
-              <div className="flex rounded-lg overflow-hidden border border-gray-200">
+              {/* Keyboard shortcuts button */}
+              <button
+                onClick={() => setShowShortcuts(true)}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors hidden sm:block"
+                title="Keyboard shortcuts (?)"
+              >
+                <Keyboard className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+
+              {/* Dark mode toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                title="Toggle dark mode (D)"
+              >
+                {isDark ? (
+                  <Sun className="w-5 h-5 text-yellow-500" />
+                ) : (
+                  <Moon className="w-5 h-5 text-gray-500" />
+                )}
+              </button>
+
+              {/* Currency Toggle */}
+              <div className="flex rounded-lg overflow-hidden border border-gray-200 dark:border-slate-600">
                 <button
                   onClick={() => updateField("displayCurrency", "SGD")}
                   className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                     displayCurrency === "SGD"
                       ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
+                      : "bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600"
                   }`}
                 >
                   SGD
@@ -246,7 +295,7 @@ function App() {
                   className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                     displayCurrency === "USD"
                       ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
+                      : "bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600"
                   }`}
                 >
                   USD
@@ -256,6 +305,43 @@ function App() {
           </div>
         </div>
       </header>
+
+      {/* Keyboard Shortcuts Modal */}
+      {showShortcuts && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowShortcuts(false)}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-md w-full shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Keyboard Shortcuts</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Toggle dark mode</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-gray-800 dark:text-gray-200">D</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Toggle currency</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-gray-800 dark:text-gray-200">C</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Share link</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-gray-800 dark:text-gray-200">⌘/Ctrl + S</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Reset to defaults</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-gray-800 dark:text-gray-200">⌘/Ctrl + Shift + R</kbd>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Close modal</span>
+                <kbd className="px-2 py-1 bg-gray-100 dark:bg-slate-700 rounded text-gray-800 dark:text-gray-200">Esc</kbd>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowShortcuts(false)}
+              className="mt-6 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Input Section */}

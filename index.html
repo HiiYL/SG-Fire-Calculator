@@ -1,11 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%232563eb' width='100' height='100' rx='20'/><text y='.9em' x='50' text-anchor='middle' font-size='70'>🔥</text></svg>" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="FIRE Calculator for Singaporeans planning to retire abroad in Malaysia, Taiwan, Thailand, and more. Compare cost of living, visa requirements, and run rate simulations." />
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta property="og:title" content="SG FIRE Calculator" />
     <meta property="og:description" content="Plan your retirement abroad from Singapore. Compare 8 countries with cost of living, visa info, and portfolio simulations." />
     <meta property="og:type" content="website" />
@@ -13,9 +18,24 @@
     <meta name="twitter:title" content="SG FIRE Calculator" />
     <meta name="twitter:description" content="Plan your retirement abroad from Singapore" />
     <title>SG FIRE Calculator - Plan Your Retirement Abroad</title>
+    <script>
+      // Apply dark mode before page renders to prevent flash
+      if (localStorage.getItem('sg-fire-dark-mode') === 'true' || 
+          (!localStorage.getItem('sg-fire-dark-mode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      }
+    </script>
   </head>
-  <body>
+  <body class="bg-slate-50 dark:bg-slate-900 transition-colors">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Register service worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {})
+        })
+      }
+    </script>
   </body>
 </html>
