@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 interface ShortcutHandlers {
   onShare?: () => void
   onReset?: () => void
-  onToggleDarkMode?: () => void
   onToggleCurrency?: () => void
   onEscape?: () => void
 }
@@ -22,15 +21,10 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
         handlers.onShare?.()
       }
 
-      // Cmd/Ctrl + R = Reset (prevent browser refresh)
+      // Cmd/Ctrl + Shift + R = Reset
       if ((e.metaKey || e.ctrlKey) && e.key === 'r' && e.shiftKey) {
         e.preventDefault()
         handlers.onReset?.()
-      }
-
-      // D = Toggle dark mode
-      if (e.key === 'd' && !e.metaKey && !e.ctrlKey) {
-        handlers.onToggleDarkMode?.()
       }
 
       // C = Toggle currency
