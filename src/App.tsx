@@ -1,16 +1,19 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, lazy, Suspense } from "react"
 import "./App.css"
 import { countries } from "@/data/countries"
 import type { Country } from "@/data/countries"
 import { calculateFIRE, runMonteCarloSimulation } from "@/lib/calculator"
 import type { CPFBalances } from "@/lib/cpf"
 import { projectCPF } from "@/lib/cpf"
-import { formatCurrency, formatNumber } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { usePersistedState } from "@/hooks/usePersistedState"
 import { CountryCard } from "@/components/CountryCard"
 import { CountryDetail } from "@/components/CountryDetail"
 import { CountryProjection } from "@/components/CountryProjection"
 import { CPFSection } from "@/components/CPFSection"
+
+// Lazy load the globe component (large dependency)
+const GlobeVisualization = lazy(() => import("@/components/GlobeVisualization").then(m => ({ default: m.GlobeVisualization })))
 import {
   PortfolioChart,
   MonteCarloChart,
@@ -52,6 +55,27 @@ function App() {
   const selectedBudget = state.selectedBudget
   const monthlySalary = state.monthlySalary
   const includeCPF = state.includeCPF
+  const displayCurrency = state.displayCurrency || "SGD"
+
+  // Currency conversion rates
+  const SGD_TO_USD = 0.74
+  const USD_TO_SGD = 1 / SGD_TO_USD
+
+  // Convert SGD to display currency
+  const fromSGD = (amount: number): number => {
+    return displayCurrency === "SGD" ? amount : amount * SGD_TO_USD
+  }
+
+  // Convert USD to display currency
+  const fromUSD = (amount: number): number => {
+    return displayCurrency === "USD" ? amount : amount * USD_TO_SGD
+  }
+
+  // Format with display currency
+  const formatDisplay = (amount: number, fromCurrency: "SGD" | "USD" = "SGD"): string => {
+    const converted = fromCurrency === "SGD" ? fromSGD(amount) : fromUSD(amount)
+    return formatCurrency(converted, displayCurrency)
+  }
 
   const cpfBalances: CPFBalances = {
     OA: state.cpfOA,
@@ -189,17 +213,45 @@ function App() {
       {/* Header */}
       <header className="bg-white border-b shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-xl">
-              <Calculator className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-600 rounded-xl">
+                <Calculator className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  SG FIRE Calculator
+                </h1>
+                <p className="text-sm text-gray-500 hidden sm:block">
+                  Plan your retirement abroad from Singapore
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                SG FIRE Calculator
-              </h1>
-              <p className="text-sm text-gray-500">
-                Plan your retirement abroad from Singapore
-              </p>
+            {/* Currency Toggle */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 hidden sm:inline">Display:</span>
+              <div className="flex rounded-lg overflow-hidden border border-gray-200">
+                <button
+                  onClick={() => updateField("displayCurrency", "SGD")}
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                    displayCurrency === "SGD"
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  SGD
+                </button>
+                <button
+                  onClick={() => updateField("displayCurrency", "USD")}
+                  className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                    displayCurrency === "USD"
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  USD
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -363,7 +415,7 @@ function App() {
                   <span className="text-sm">Cash/Investments</span>
                 </div>
                 <p className="text-2xl font-bold">
-                  {formatCurrency(fireResult.portfolioAtRetirement, "SGD")}
+                  {formatDisplay(fireResult.portfolioAtRetirement, "SGD")}
                 </p>
                 <p className="text-sm opacity-80 mt-1">
                   At age {retirementAge}
@@ -379,7 +431,7 @@ function App() {
                     <span className="text-sm">CPF (Full Withdrawal)</span>
                   </div>
                   <p className="text-2xl font-bold">
-                    {formatCurrency(cpfAtRetirement.withdrawable, "SGD")}
+                    {formatDisplay(cpfAtRetirement.withdrawable, "SGD")}
                   </p>
                   <p className="text-sm opacity-80 mt-1">
                     On renouncing PR
@@ -395,10 +447,10 @@ function App() {
                   <span className="text-sm">Monthly Withdrawal</span>
                 </div>
                 <p className="text-2xl font-bold">
-                  {formatCurrency((includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement) * withdrawalRate / 12, "SGD")}
+                  {formatDisplay((includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement) * withdrawalRate / 12, "SGD")}
                 </p>
                 <p className="text-sm opacity-80 mt-1">
-                  ~${Math.round((includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement) * withdrawalRate / 12 * 0.74)} USD
+                  {displayCurrency === "SGD" ? "4% SWR" : "4% SWR"}
                 </p>
               </CardContent>
             </Card>
@@ -423,10 +475,10 @@ function App() {
                   <span className="text-sm">Total Portfolio</span>
                 </div>
                 <p className="text-2xl font-bold">
-                  {formatCurrency(includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement, "SGD")}
+                  {formatDisplay(includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement, "SGD")}
                 </p>
                 <p className="text-sm opacity-80 mt-1">
-                  {includeCPF ? "Cash + CPF OA" : "Cash only"}
+                  {includeCPF ? "Cash + CPF" : "Cash only"}
                 </p>
               </CardContent>
             </Card>
@@ -477,7 +529,7 @@ function App() {
                           {bestValue.flag} {bestValue.name}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
-                          ${bestValue.costOfLiving.total[selectedBudget]}/month
+                          {formatDisplay(bestValue.costOfLiving.total[selectedBudget], "USD")}/month
                         </p>
                       </div>
                       <div className="bg-white rounded-xl p-4 shadow-sm">
@@ -488,8 +540,7 @@ function App() {
                           {mostExpensive.flag} {mostExpensive.name}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
-                          ${mostExpensive.costOfLiving.total[selectedBudget]}
-                          /month
+                          {formatDisplay(mostExpensive.costOfLiving.total[selectedBudget], "USD")}/month
                         </p>
                       </div>
                     </>
@@ -516,6 +567,37 @@ function App() {
         <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CountryComparisonChart data={countryComparisonData} />
           <RunwayChart data={runwayData} targetYears={25} />
+        </section>
+
+        {/* Globe Visualization */}
+        <section className="mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-blue-600" />
+                Global Retirement Map
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Suspense fallback={
+                <div className="w-full h-[500px] bg-slate-900 rounded-xl flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p>Loading globe...</p>
+                  </div>
+                </div>
+              }>
+                <GlobeVisualization
+                  countries={countries}
+                  selectedBudget={selectedBudget}
+                  portfolioValue={includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement}
+                  withdrawalRate={withdrawalRate}
+                  onCountryClick={setFocusedCountry}
+                  focusedCountry={focusedCountry}
+                />
+              </Suspense>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Countries Section */}
@@ -551,6 +633,7 @@ function App() {
                 withdrawalRate={withdrawalRate}
                 onSelect={() => setFocusedCountry(country)}
                 isSelected={focusedCountry?.id === country.id}
+                displayCurrency={displayCurrency}
               />
             ))}
           </div>
@@ -604,13 +687,13 @@ function App() {
                             {c.name}
                           </td>
                           <td className="text-right py-3 px-2">
-                            ${formatNumber(c.costOfLiving.total.frugal)}
+                            {formatDisplay(c.costOfLiving.total.frugal, "USD")}
                           </td>
                           <td className="text-right py-3 px-2">
-                            ${formatNumber(c.costOfLiving.total.moderate)}
+                            {formatDisplay(c.costOfLiving.total.moderate, "USD")}
                           </td>
                           <td className="text-right py-3 px-2">
-                            ${formatNumber(c.costOfLiving.total.comfortable)}
+                            {formatDisplay(c.costOfLiving.total.comfortable, "USD")}
                           </td>
                           <td className="text-center py-3 px-2 text-amber-500">
                             {"★".repeat(c.lifestyle.englishFriendly)}
@@ -675,6 +758,7 @@ function App() {
             setSelectedCountry(focusedCountry)
             setFocusedCountry(null)
           }}
+          displayCurrency={displayCurrency}
         />
       )}
 
@@ -686,6 +770,7 @@ function App() {
           portfolioValue={includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement}
           withdrawalRate={withdrawalRate}
           onClose={() => setSelectedCountry(null)}
+          displayCurrency={displayCurrency}
         />
       )}
     </div>

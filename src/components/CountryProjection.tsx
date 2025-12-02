@@ -32,6 +32,7 @@ interface CountryProjectionProps {
   inflationRate: number
   onClose: () => void
   onViewDetails?: () => void
+  displayCurrency?: "SGD" | "USD"
 }
 
 interface YearlyData {
@@ -53,10 +54,18 @@ export function CountryProjection({
   expectedReturn,
   inflationRate,
   onClose,
+  displayCurrency = "SGD",
 }: CountryProjectionProps) {
   const sgdToUsd = 0.74
+  const usdToSgd = 1 / sgdToUsd
   const monthlyBudget = country.costOfLiving.total[selectedBudget]
   const annualBudgetUSD = monthlyBudget * 12
+
+  // Convert USD cost to display currency
+  const formatCost = (usdAmount: number) => {
+    const amount = displayCurrency === "USD" ? usdAmount : usdAmount * usdToSgd
+    return formatCurrency(amount, displayCurrency)
+  }
 
   // Calculate country-specific projection with actual spending
   const projection = useMemo(() => {
@@ -135,7 +144,7 @@ export function CountryProjection({
                   Retirement in {country.name}
                 </CardTitle>
                 <p className="text-gray-500 text-sm">
-                  {selectedBudget.charAt(0).toUpperCase() + selectedBudget.slice(1)} lifestyle • ${monthlyBudget}/month
+                  {selectedBudget.charAt(0).toUpperCase() + selectedBudget.slice(1)} lifestyle • {formatCost(monthlyBudget)}/month
                 </p>
               </div>
             </div>
@@ -213,10 +222,10 @@ export function CountryProjection({
                 <span className="text-xs font-medium">Annual Spending</span>
               </div>
               <p className="text-2xl font-bold text-green-700">
-                ${(annualBudgetUSD / 1000).toFixed(1)}K
+                {formatCost(annualBudgetUSD)}
               </p>
               <p className="text-xs text-green-600">
-                {formatCurrency(annualBudgetUSD / sgdToUsd, "SGD")}/year
+                {formatCost(monthlyBudget)}/month
               </p>
             </div>
 
@@ -239,7 +248,7 @@ export function CountryProjection({
                 <span className="text-xs font-medium">Total Withdrawals</span>
               </div>
               <p className="text-2xl font-bold text-amber-700">
-                {formatCurrency(totalWithdrawals, "SGD")}
+                {formatCurrency(displayCurrency === "SGD" ? totalWithdrawals : totalWithdrawals * sgdToUsd, displayCurrency)}
               </p>
               <p className="text-xs text-amber-600">
                 Over {yearsOfRunway} years
@@ -275,11 +284,14 @@ export function CountryProjection({
                     tick={{ fontSize: 12 }}
                     tickLine={false}
                     axisLine={{ stroke: "#e5e7eb" }}
-                    tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`}
+                    tickFormatter={(value) => {
+                      const converted = displayCurrency === "SGD" ? value : value * sgdToUsd
+                      return `${displayCurrency === "SGD" ? "S$" : "$"}${(converted / 1000000).toFixed(1)}M`
+                    }}
                   />
                   <Tooltip
                     formatter={(value: number, name: string) => [
-                      formatCurrency(value, "SGD"),
+                      formatCurrency(displayCurrency === "SGD" ? value : value * sgdToUsd, displayCurrency),
                       name,
                     ]}
                     labelFormatter={(label) => `Age ${label}`}
@@ -339,7 +351,7 @@ export function CountryProjection({
               ].map((item) => (
                 <div key={item.label} className="bg-gray-50 rounded-lg p-3">
                   <p className="text-xs text-gray-500">{item.label}</p>
-                  <p className="font-semibold">${item.value}</p>
+                  <p className="font-semibold">{formatCost(item.value)}</p>
                   <div className="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-blue-500 rounded-full"
@@ -350,9 +362,9 @@ export function CountryProjection({
               ))}
               <div className="bg-blue-50 rounded-lg p-3 border-2 border-blue-200">
                 <p className="text-xs text-blue-600 font-medium">Total</p>
-                <p className="font-bold text-blue-700">${monthlyBudget}</p>
+                <p className="font-bold text-blue-700">{formatCost(monthlyBudget)}</p>
                 <p className="text-xs text-blue-500 mt-1">
-                  {formatCurrency(monthlyBudget / sgdToUsd, "SGD")}
+                  per month
                 </p>
               </div>
             </div>
@@ -383,7 +395,7 @@ export function CountryProjection({
                     <p className={`font-semibold capitalize ${isSelected ? "text-blue-700" : "text-gray-700"}`}>
                       {budget}
                     </p>
-                    <p className="text-2xl font-bold mt-1">${budgetAmount}</p>
+                    <p className="text-2xl font-bold mt-1">{formatCost(budgetAmount)}</p>
                     <p className="text-sm text-gray-500">/month</p>
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <p className="text-xs text-gray-500">Runway</p>

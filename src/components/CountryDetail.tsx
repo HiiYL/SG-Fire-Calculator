@@ -27,6 +27,7 @@ interface CountryDetailProps {
   portfolioValue: number
   withdrawalRate: number
   onClose: () => void
+  displayCurrency?: "SGD" | "USD"
 }
 
 export function CountryDetail({
@@ -35,12 +36,20 @@ export function CountryDetail({
   portfolioValue,
   withdrawalRate,
   onClose,
+  displayCurrency = "SGD",
 }: CountryDetailProps) {
   const monthlyBudget = country.costOfLiving.total[selectedBudget]
   const annualBudget = monthlyBudget * 12
   const sgdToUsd = 0.74
+  const usdToSgd = 1 / sgdToUsd
   const annualWithdrawal = portfolioValue * withdrawalRate * sgdToUsd
   const yearsOfRunway = annualWithdrawal / annualBudget
+
+  // Convert USD cost to display currency
+  const formatCost = (usdAmount: number) => {
+    const amount = displayCurrency === "USD" ? usdAmount : usdAmount * usdToSgd
+    return formatCurrency(amount, displayCurrency)
+  }
 
   const getRatingStars = (rating: number) => {
     return "★".repeat(rating) + "☆".repeat(5 - rating)
@@ -86,10 +95,10 @@ export function CountryDetail({
                 <span className="font-medium">Monthly Budget</span>
               </div>
               <p className="text-3xl font-bold text-blue-700">
-                {formatCurrency(monthlyBudget, "USD")}
+                {formatCost(monthlyBudget)}
               </p>
               <p className="text-sm text-blue-600 mt-1">
-                {formatCurrency(annualBudget, "USD")}/year
+                {formatCost(annualBudget)}/year
               </p>
             </div>
 
@@ -124,7 +133,7 @@ export function CountryDetail({
           <div>
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-gray-500" />
-              Monthly Cost Breakdown (USD)
+              Monthly Cost Breakdown ({displayCurrency})
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {costBreakdown.map((item) => (
@@ -135,7 +144,7 @@ export function CountryDetail({
                   <item.icon className="w-5 h-5 text-gray-400" />
                   <div>
                     <p className="text-xs text-gray-500">{item.label}</p>
-                    <p className="font-semibold">${item.value}</p>
+                    <p className="font-semibold">{formatCost(item.value)}</p>
                   </div>
                 </div>
               ))}
@@ -268,13 +277,13 @@ export function CountryDetail({
                   <p className="text-sm text-gray-600 mb-3">{city.description}</p>
                   <div className="flex gap-2 text-xs">
                     <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
-                      Frugal: ${city.monthlyBudget.frugal}
+                      Frugal: {formatCost(city.monthlyBudget.frugal)}
                     </span>
                     <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                      Moderate: ${city.monthlyBudget.moderate}
+                      Mod: {formatCost(city.monthlyBudget.moderate)}
                     </span>
                     <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                      Comfortable: ${city.monthlyBudget.comfortable}
+                      Comf: {formatCost(city.monthlyBudget.comfortable)}
                     </span>
                   </div>
                 </div>

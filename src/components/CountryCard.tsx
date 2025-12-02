@@ -21,6 +21,7 @@ interface CountryCardProps {
   withdrawalRate: number
   onSelect: () => void
   isSelected: boolean
+  displayCurrency?: "SGD" | "USD"
 }
 
 export function CountryCard({
@@ -30,13 +31,21 @@ export function CountryCard({
   withdrawalRate,
   onSelect,
   isSelected,
+  displayCurrency = "SGD",
 }: CountryCardProps) {
   const monthlyBudget = country.costOfLiving.total[selectedBudget]
   const annualBudget = monthlyBudget * 12
   const sgdToUsd = 0.74
+  const usdToSgd = 1 / sgdToUsd
   const annualWithdrawal = portfolioValue * withdrawalRate * sgdToUsd
   const yearsOfRunway = annualWithdrawal / annualBudget
   const canAfford = yearsOfRunway >= 25
+
+  // Convert USD cost to display currency
+  const formatCost = (usdAmount: number) => {
+    const amount = displayCurrency === "USD" ? usdAmount : usdAmount * usdToSgd
+    return formatCurrency(amount, displayCurrency)
+  }
 
   const getRatingStars = (rating: number) => {
     return "★".repeat(rating) + "☆".repeat(5 - rating)
@@ -78,7 +87,7 @@ export function CountryCard({
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-600">Monthly Budget</span>
             <span className="text-lg font-bold text-blue-600">
-              {formatCurrency(monthlyBudget, "USD")}
+              {formatCost(monthlyBudget)}
             </span>
           </div>
           <div className="flex gap-2 text-xs">
@@ -89,7 +98,7 @@ export function CountryCard({
                   : "bg-gray-200 text-gray-600"
               }`}
             >
-              Frugal: ${country.costOfLiving.total.frugal}
+              Frugal: {formatCost(country.costOfLiving.total.frugal)}
             </span>
             <span
               className={`px-2 py-1 rounded ${
@@ -98,7 +107,7 @@ export function CountryCard({
                   : "bg-gray-200 text-gray-600"
               }`}
             >
-              Moderate: ${country.costOfLiving.total.moderate}
+              Mod: {formatCost(country.costOfLiving.total.moderate)}
             </span>
             <span
               className={`px-2 py-1 rounded ${
@@ -107,7 +116,7 @@ export function CountryCard({
                   : "bg-gray-200 text-gray-600"
               }`}
             >
-              Comfortable: ${country.costOfLiving.total.comfortable}
+              Comf: {formatCost(country.costOfLiving.total.comfortable)}
             </span>
           </div>
         </div>

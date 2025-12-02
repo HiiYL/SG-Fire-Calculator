@@ -11,6 +11,10 @@ export interface Country {
   pros: string[]
   cons: string[]
   popularCities: City[]
+  coordinates: {
+    lat: number
+    lng: number
+  }
 }
 
 export interface CostOfLiving {
@@ -145,6 +149,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 1100, moderate: 1700, comfortable: 2800 },
       },
     ],
+    coordinates: { lat: 3.1390, lng: 101.6869 }, // Kuala Lumpur
   },
   {
     id: 'taiwan',
@@ -228,6 +233,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 1100, moderate: 1600, comfortable: 2600 },
       },
     ],
+    coordinates: { lat: 25.0330, lng: 121.5654 }, // Taipei
   },
   {
     id: 'thailand',
@@ -313,6 +319,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 1000, moderate: 1500, comfortable: 2600 },
       },
     ],
+    coordinates: { lat: 13.7563, lng: 100.5018 }, // Bangkok
   },
   {
     id: 'vietnam',
@@ -398,6 +405,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 700, moderate: 1100, comfortable: 1800 },
       },
     ],
+    coordinates: { lat: 16.0544, lng: 108.2022 }, // Da Nang
   },
   {
     id: 'indonesia',
@@ -483,6 +491,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 900, moderate: 1400, comfortable: 2300 },
       },
     ],
+    coordinates: { lat: -8.4095, lng: 115.1889 }, // Bali
   },
   {
     id: 'philippines',
@@ -568,6 +577,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 1200, moderate: 1800, comfortable: 3000 },
       },
     ],
+    coordinates: { lat: 14.5995, lng: 120.9842 }, // Manila
   },
   {
     id: 'portugal',
@@ -654,6 +664,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 1500, moderate: 2100, comfortable: 3300 },
       },
     ],
+    coordinates: { lat: 38.7223, lng: -9.1393 }, // Lisbon
   },
   {
     id: 'japan',
@@ -739,6 +750,7 @@ export const countries: Country[] = [
         monthlyBudget: { frugal: 1300, moderate: 1900, comfortable: 3000 },
       },
     ],
+    coordinates: { lat: 35.6762, lng: 139.6503 }, // Tokyo
   },
 ]
 

@@ -16,6 +16,7 @@ export interface PersistedState {
   cpfMA: number
   monthlySalary: number
   includeCPF: boolean
+  displayCurrency: "SGD" | "USD"
 }
 
 const defaultState: PersistedState = {
@@ -32,6 +33,7 @@ const defaultState: PersistedState = {
   cpfMA: 40000,
   monthlySalary: 8000,
   includeCPF: true,
+  displayCurrency: "SGD",
 }
 
 // Encode state to URL-safe base64
