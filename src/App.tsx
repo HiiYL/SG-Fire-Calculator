@@ -859,13 +859,10 @@ function App() {
                     {countries.map((c) => {
                       const sgdToUsd = 0.74
                       const portfolioToUse = includeCPF ? combinedPortfolio : fireResult.portfolioAtRetirement
-                      const annualWithdrawal =
-                        portfolioToUse *
-                        withdrawalRate *
-                        sgdToUsd
+                      const portfolioInUSD = portfolioToUse * sgdToUsd
                       const annualBudget =
                         c.costOfLiving.total[selectedBudget] * 12
-                      const years = annualWithdrawal / annualBudget
+                      const years = portfolioInUSD / annualBudget
 
                       return (
                         <tr
