@@ -2,7 +2,8 @@ import { useState, useMemo, lazy, Suspense, useCallback } from "react"
 import "./App.css"
 import { countries } from "@/data/countries"
 import type { Country } from "@/data/countries"
-import { calculateFIRE, runMonteCarloSimulation } from "@/lib/calculator"
+import { calculateFIRE, runMonteCarloSimulation, runHistoricalBacktest } from "@/lib/calculator"
+import type { HistoricalBacktestResult } from "@/lib/calculator"
 import type { CPFBalances } from "@/lib/cpf"
 import { projectCPF } from "@/lib/cpf"
 import { formatCurrency } from "@/lib/utils"
@@ -190,6 +191,34 @@ function App() {
       500,
       40
     )
+  }, [
+    currentSavings,
+    monthlyContribution,
+    yearsToRetirement,
+    expectedReturn,
+    inflationRate,
+    withdrawalRate,
+    currentAge,
+  ])
+
+  // Historical backtesting using actual market data (1928-2023)
+  const historicalBacktest = useMemo((): HistoricalBacktestResult | null => {
+    try {
+      return runHistoricalBacktest(
+        {
+          currentSavings,
+          monthlyContribution,
+          yearsToRetirement,
+          expectedReturn,
+          inflationRate,
+          withdrawalRate,
+        },
+        currentAge,
+        30 // 30 years of retirement
+      )
+    } catch {
+      return null
+    }
   }, [
     currentSavings,
     monthlyContribution,
@@ -753,6 +782,148 @@ function App() {
             retirementAge={retirementAge}
           />
         </section>
+
+        {/* Historical Backtesting Section */}
+        {historicalBacktest && (
+          <section className="mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                  Historical Backtesting (1928-2023)
+                </CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  How your plan would have performed across {historicalBacktest.sequences.length} historical periods using actual S&P 500 returns
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  {/* Success Rate */}
+                  <div className={`p-4 rounded-xl border ${
+                    historicalBacktest.successRate >= 0.95 ? 'bg-green-50 border-green-200' :
+                    historicalBacktest.successRate >= 0.85 ? 'bg-yellow-50 border-yellow-200' :
+                    'bg-red-50 border-red-200'
+                  }`}>
+                    <p className="text-sm text-gray-600 mb-1">Historical Success Rate</p>
+                    <p className={`text-3xl font-bold ${
+                      historicalBacktest.successRate >= 0.95 ? 'text-green-700' :
+                      historicalBacktest.successRate >= 0.85 ? 'text-yellow-700' :
+                      'text-red-700'
+                    }`}>
+                      {(historicalBacktest.successRate * 100).toFixed(1)}%
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Survived 30 years in {Math.round(historicalBacktest.successRate * historicalBacktest.sequences.length)} of {historicalBacktest.sequences.length} periods
+                    </p>
+                  </div>
+
+                  {/* Worst Case */}
+                  <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+                    <p className="text-sm text-gray-600 mb-1">Worst Starting Year</p>
+                    <p className="text-2xl font-bold text-red-700">
+                      {historicalBacktest.worstSequence.startYear}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {historicalBacktest.worstSequence.survived 
+                        ? `Ended with ${formatCurrency(historicalBacktest.worstSequence.finalValue, 'SGD')}`
+                        : `Depleted in year ${historicalBacktest.worstSequence.yearsDepleted}`
+                      }
+                    </p>
+                  </div>
+
+                  {/* Best Case */}
+                  <div className="p-4 rounded-xl bg-green-50 border border-green-200">
+                    <p className="text-sm text-gray-600 mb-1">Best Starting Year</p>
+                    <p className="text-2xl font-bold text-green-700">
+                      {historicalBacktest.bestSequence.startYear}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ended with {formatCurrency(historicalBacktest.bestSequence.finalValue, 'SGD')}
+                    </p>
+                  </div>
+
+                  {/* Median Outcome */}
+                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
+                    <p className="text-sm text-gray-600 mb-1">Median Final Value</p>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {formatCurrency(historicalBacktest.medianFinalValue, 'SGD')}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      After 30 years of retirement
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notable Periods */}
+                <div className="mt-6">
+                  <h4 className="font-semibold text-gray-700 mb-3">Notable Historical Periods</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      { name: "Great Depression", year: 1929, desc: "Worst crash in history" },
+                      { name: "1966 Stagflation", year: 1966, desc: "High inflation, poor returns" },
+                      { name: "1973 Oil Crisis", year: 1973, desc: "Severe bear market" },
+                      { name: "2000 Dot-com", year: 2000, desc: "Tech bubble burst" },
+                      { name: "2008 Financial Crisis", year: 2007, desc: "Housing crash" },
+                    ].map((period) => {
+                      const sequence = historicalBacktest.sequences.find(s => s.startYear === period.year)
+                      if (!sequence) return null
+                      return (
+                        <div key={period.year} className={`p-3 rounded-lg border ${
+                          sequence.survived ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm">{period.name}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              sequence.survived ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
+                            }`}>
+                              {sequence.survived ? '✓ Survived' : '✗ Failed'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">{period.desc}</p>
+                          {sequence.survived && (
+                            <p className="text-xs text-green-700 mt-1">
+                              Final: {formatCurrency(sequence.finalValue, 'SGD')}
+                            </p>
+                          )}
+                          {!sequence.survived && sequence.yearsDepleted && (
+                            <p className="text-xs text-red-700 mt-1">
+                              Depleted in year {sequence.yearsDepleted}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Comparison with Monte Carlo */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Monte Carlo vs Historical
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Monte Carlo Success</p>
+                      <p className="font-bold text-lg">{(monteCarloResult.successRate * 100).toFixed(1)}%</p>
+                      <p className="text-xs text-gray-400">Based on random simulations</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Historical Success</p>
+                      <p className="font-bold text-lg">{(historicalBacktest.successRate * 100).toFixed(1)}%</p>
+                      <p className="text-xs text-gray-400">Based on actual market data</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Historical backtesting uses actual S&P 500 returns and inflation from 1928-2023. 
+                    It tests your exact plan against every possible {yearsToRetirement + 30}-year period in history.
+                    This is generally considered more reliable than Monte Carlo for stress-testing retirement plans.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* Country Comparison Charts */}
         <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
