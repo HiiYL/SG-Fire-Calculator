@@ -129,26 +129,60 @@ export function CountryDetail({
             </div>
           </div>
 
-          {/* Cost Breakdown */}
+          {/* Lifestyle Tier Description */}
+          {country.costOfLiving.lifestyles && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <DollarSign className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-900 capitalize">{selectedBudget} Lifestyle</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    {country.costOfLiving.lifestyles[selectedBudget].description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Detailed Cost Breakdown */}
           <div>
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-gray-500" />
-              Monthly Cost Breakdown ({displayCurrency})
+              What You Get for {formatCost(monthlyBudget)}/month
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {costBreakdown.map((item) => (
-                <div
-                  key={item.label}
-                  className="bg-gray-50 rounded-lg p-3 flex items-center gap-3"
-                >
-                  <item.icon className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-xs text-gray-500">{item.label}</p>
-                    <p className="font-semibold">{formatCost(item.value)}</p>
+            {country.costOfLiving.lifestyles ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.entries(country.costOfLiving.lifestyles[selectedBudget].breakdown).map(([key, item]) => (
+                  <div
+                    key={key}
+                    className="bg-gray-50 rounded-lg p-4 border border-gray-100"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700 capitalize">{key}</p>
+                      <p className="font-bold text-blue-600">{formatCost(item.amount)}</p>
+                    </div>
+                    <p className="text-xs text-gray-500">{item.description}</p>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {costBreakdown.map((item) => (
+                  <div
+                    key={item.label}
+                    className="bg-gray-50 rounded-lg p-3 flex items-center gap-3"
+                  >
+                    <item.icon className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-xs text-gray-500">{item.label}</p>
+                      <p className="font-semibold">{formatCost(item.value)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Lifestyle Info */}

@@ -17,6 +17,19 @@ export interface Country {
   }
 }
 
+export interface LifestyleTier {
+  total: number
+  description: string
+  breakdown: {
+    housing: { amount: number; description: string }
+    food: { amount: number; description: string }
+    transport: { amount: number; description: string }
+    healthcare: { amount: number; description: string }
+    entertainment: { amount: number; description: string }
+    utilities: { amount: number; description: string }
+  }
+}
+
 export interface CostOfLiving {
   rentStudio: number // USD/month
   rent1Bed: number
@@ -31,6 +44,12 @@ export interface CostOfLiving {
     frugal: number
     moderate: number
     comfortable: number
+  }
+  // Detailed lifestyle breakdowns
+  lifestyles: {
+    frugal: LifestyleTier
+    moderate: LifestyleTier
+    comfortable: LifestyleTier
   }
 }
 
@@ -87,6 +106,44 @@ export const countries: Country[] = [
         frugal: 1000,
         moderate: 1500,
         comfortable: 2500,
+      },
+      lifestyles: {
+        frugal: {
+          total: 1000,
+          description: "Basic but comfortable living in smaller cities like Ipoh or Penang outskirts",
+          breakdown: {
+            housing: { amount: 300, description: "Studio or room rental in local area" },
+            food: { amount: 250, description: "Cook at home, occasional hawker meals" },
+            transport: { amount: 50, description: "Public transport, occasional Grab" },
+            healthcare: { amount: 30, description: "Government clinics, basic insurance" },
+            entertainment: { amount: 50, description: "Free activities, occasional movies" },
+            utilities: { amount: 40, description: "Electricity, water, basic internet" },
+          },
+        },
+        moderate: {
+          total: 1500,
+          description: "Comfortable expat lifestyle in KL suburbs or Penang",
+          breakdown: {
+            housing: { amount: 500, description: "1-bedroom condo with pool & gym" },
+            food: { amount: 350, description: "Mix of cooking and restaurant dining" },
+            transport: { amount: 100, description: "Grab rides, occasional car rental" },
+            healthcare: { amount: 80, description: "Private clinics, health insurance" },
+            entertainment: { amount: 150, description: "Dining out, activities, travel" },
+            utilities: { amount: 70, description: "A/C, fast internet, streaming" },
+          },
+        },
+        comfortable: {
+          total: 2500,
+          description: "Premium lifestyle in KLCC, Mont Kiara, or beachfront Penang",
+          breakdown: {
+            housing: { amount: 1000, description: "Luxury 2-bed condo in prime area" },
+            food: { amount: 500, description: "Fine dining, imported groceries" },
+            transport: { amount: 200, description: "Car lease or frequent Grab Premium" },
+            healthcare: { amount: 150, description: "Premium insurance, private hospitals" },
+            entertainment: { amount: 350, description: "Golf, spa, weekend trips" },
+            utilities: { amount: 100, description: "Full A/C, premium internet, services" },
+          },
+        },
       },
     },
     visa: {
@@ -173,6 +230,44 @@ export const countries: Country[] = [
         moderate: 1800,
         comfortable: 3000,
       },
+      lifestyles: {
+        frugal: {
+          total: 1200,
+          description: "Simple living in smaller cities like Tainan or Kaohsiung",
+          breakdown: {
+            housing: { amount: 350, description: "Studio in older building, local area" },
+            food: { amount: 300, description: "Night markets, local eateries, cooking" },
+            transport: { amount: 50, description: "MRT, buses, YouBike" },
+            healthcare: { amount: 50, description: "NHI coverage (if eligible), clinics" },
+            entertainment: { amount: 80, description: "Hiking, temples, local events" },
+            utilities: { amount: 50, description: "Electricity, water, basic internet" },
+          },
+        },
+        moderate: {
+          total: 1800,
+          description: "Comfortable life in Taipei suburbs or central Taichung",
+          breakdown: {
+            housing: { amount: 600, description: "Modern 1-bed apartment near MRT" },
+            food: { amount: 400, description: "Mix of cooking and restaurant dining" },
+            transport: { amount: 80, description: "MRT, occasional taxi, scooter rental" },
+            healthcare: { amount: 100, description: "NHI + private top-up insurance" },
+            entertainment: { amount: 200, description: "Cafes, movies, weekend trips" },
+            utilities: { amount: 80, description: "A/C, fast internet, streaming" },
+          },
+        },
+        comfortable: {
+          total: 3000,
+          description: "Premium lifestyle in Taipei Xinyi or Da'an district",
+          breakdown: {
+            housing: { amount: 1200, description: "Luxury apartment in prime Taipei" },
+            food: { amount: 600, description: "Fine dining, Japanese imports" },
+            transport: { amount: 150, description: "Taxi, car rental, HSR travel" },
+            healthcare: { amount: 200, description: "Premium private healthcare" },
+            entertainment: { amount: 400, description: "Golf, spas, island hopping" },
+            utilities: { amount: 120, description: "Full amenities, premium services" },
+          },
+        },
+      },
     },
     visa: {
       type: 'Entrepreneur Visa / Gold Card',
@@ -256,6 +351,44 @@ export const countries: Country[] = [
         frugal: 1000,
         moderate: 1600,
         comfortable: 2800,
+      },
+      lifestyles: {
+        frugal: {
+          total: 1000,
+          description: "Simple living in Chiang Mai or smaller Thai cities",
+          breakdown: {
+            housing: { amount: 300, description: "Studio or fan room in local area" },
+            food: { amount: 250, description: "Street food, local markets, cooking" },
+            transport: { amount: 40, description: "Songthaew, motorbike rental" },
+            healthcare: { amount: 40, description: "Government hospitals, basic meds" },
+            entertainment: { amount: 60, description: "Temples, nature, local events" },
+            utilities: { amount: 50, description: "Electricity, water, basic wifi" },
+          },
+        },
+        moderate: {
+          total: 1600,
+          description: "Comfortable expat life in Chiang Mai or Bangkok suburbs",
+          breakdown: {
+            housing: { amount: 550, description: "1-bed condo with pool in good area" },
+            food: { amount: 350, description: "Mix of Thai and Western food" },
+            transport: { amount: 80, description: "BTS/MRT, Grab, scooter" },
+            healthcare: { amount: 100, description: "Private hospitals, insurance" },
+            entertainment: { amount: 200, description: "Cafes, massage, weekend trips" },
+            utilities: { amount: 80, description: "A/C, fast internet, streaming" },
+          },
+        },
+        comfortable: {
+          total: 2800,
+          description: "Premium lifestyle in Bangkok Sukhumvit or beachfront Phuket",
+          breakdown: {
+            housing: { amount: 1100, description: "Luxury condo in prime location" },
+            food: { amount: 550, description: "Fine dining, imported goods" },
+            transport: { amount: 180, description: "Taxi, car rental, domestic flights" },
+            healthcare: { amount: 200, description: "Premium Bumrungrad-level care" },
+            entertainment: { amount: 400, description: "Beach clubs, golf, island trips" },
+            utilities: { amount: 120, description: "Full A/C, premium everything" },
+          },
+        },
       },
     },
     visa: {
@@ -343,6 +476,44 @@ export const countries: Country[] = [
         moderate: 1200,
         comfortable: 2000,
       },
+      lifestyles: {
+        frugal: {
+          total: 800,
+          description: "Budget living in Da Nang or smaller cities",
+          breakdown: {
+            housing: { amount: 250, description: "Local apartment or room rental" },
+            food: { amount: 200, description: "Pho, banh mi, local eateries" },
+            transport: { amount: 30, description: "Motorbike rental, local buses" },
+            healthcare: { amount: 30, description: "Local clinics, cheap medicine" },
+            entertainment: { amount: 50, description: "Beach, coffee shops, local life" },
+            utilities: { amount: 40, description: "Basic electricity, wifi" },
+          },
+        },
+        moderate: {
+          total: 1200,
+          description: "Comfortable expat life in HCMC District 2 or Da Nang beach",
+          breakdown: {
+            housing: { amount: 450, description: "Modern 1-bed in expat area" },
+            food: { amount: 280, description: "Mix of local and Western food" },
+            transport: { amount: 60, description: "Grab, motorbike, occasional taxi" },
+            healthcare: { amount: 80, description: "International clinics, insurance" },
+            entertainment: { amount: 150, description: "Cafes, beach clubs, travel" },
+            utilities: { amount: 60, description: "A/C, fast internet" },
+          },
+        },
+        comfortable: {
+          total: 2000,
+          description: "Premium lifestyle in HCMC Thao Dien or Hanoi West Lake",
+          breakdown: {
+            housing: { amount: 800, description: "Luxury serviced apartment" },
+            food: { amount: 400, description: "Fine dining, imported groceries" },
+            transport: { amount: 120, description: "Grab Premium, car rental" },
+            healthcare: { amount: 150, description: "Premium international hospitals" },
+            entertainment: { amount: 300, description: "Rooftop bars, golf, travel" },
+            utilities: { amount: 100, description: "Full amenities, premium services" },
+          },
+        },
+      },
     },
     visa: {
       type: 'E-visa / Visa Exemption / Business Visa',
@@ -428,6 +599,44 @@ export const countries: Country[] = [
         frugal: 1100,
         moderate: 1700,
         comfortable: 2800,
+      },
+      lifestyles: {
+        frugal: {
+          total: 1100,
+          description: "Simple living in Ubud outskirts or less touristy areas",
+          breakdown: {
+            housing: { amount: 350, description: "Basic room or small house rental" },
+            food: { amount: 250, description: "Warungs, local markets, cooking" },
+            transport: { amount: 60, description: "Scooter rental, occasional Grab" },
+            healthcare: { amount: 50, description: "Local clinics, basic insurance" },
+            entertainment: { amount: 80, description: "Beach, temples, yoga" },
+            utilities: { amount: 50, description: "Electricity, basic wifi" },
+          },
+        },
+        moderate: {
+          total: 1700,
+          description: "Comfortable digital nomad life in Canggu or Ubud center",
+          breakdown: {
+            housing: { amount: 600, description: "Nice villa or 1-bed with pool access" },
+            food: { amount: 350, description: "Mix of warungs and cafes" },
+            transport: { amount: 100, description: "Scooter, occasional car rental" },
+            healthcare: { amount: 100, description: "BIMC or Siloam hospitals" },
+            entertainment: { amount: 200, description: "Beach clubs, coworking, yoga" },
+            utilities: { amount: 80, description: "A/C, fast internet" },
+          },
+        },
+        comfortable: {
+          total: 2800,
+          description: "Premium lifestyle in Seminyak or luxury Ubud villa",
+          breakdown: {
+            housing: { amount: 1100, description: "Private pool villa, prime location" },
+            food: { amount: 500, description: "Fine dining, imported goods" },
+            transport: { amount: 180, description: "Car with driver, premium scooter" },
+            healthcare: { amount: 180, description: "Premium international care" },
+            entertainment: { amount: 400, description: "Beach clubs, spa, island trips" },
+            utilities: { amount: 120, description: "Full A/C, premium everything" },
+          },
+        },
       },
     },
     visa: {
@@ -515,6 +724,44 @@ export const countries: Country[] = [
         moderate: 1400,
         comfortable: 2400,
       },
+      lifestyles: {
+        frugal: {
+          total: 900,
+          description: "Simple living in Dumaguete or provincial areas",
+          breakdown: {
+            housing: { amount: 250, description: "Basic apartment in local area" },
+            food: { amount: 220, description: "Carinderias, markets, cooking" },
+            transport: { amount: 40, description: "Jeepneys, tricycles" },
+            healthcare: { amount: 40, description: "PhilHealth, local clinics" },
+            entertainment: { amount: 60, description: "Beach, local festivals" },
+            utilities: { amount: 60, description: "Electricity (can be pricey), wifi" },
+          },
+        },
+        moderate: {
+          total: 1400,
+          description: "Comfortable life in Cebu or Davao",
+          breakdown: {
+            housing: { amount: 450, description: "Condo in good area with amenities" },
+            food: { amount: 300, description: "Mix of local and Western food" },
+            transport: { amount: 70, description: "Grab, occasional rental" },
+            healthcare: { amount: 100, description: "Private hospitals, HMO" },
+            entertainment: { amount: 180, description: "Malls, island hopping, dining" },
+            utilities: { amount: 100, description: "A/C, internet, water" },
+          },
+        },
+        comfortable: {
+          total: 2400,
+          description: "Premium lifestyle in BGC Manila or Cebu IT Park",
+          breakdown: {
+            housing: { amount: 900, description: "Luxury condo in prime area" },
+            food: { amount: 450, description: "Fine dining, imported goods" },
+            transport: { amount: 150, description: "Grab Premium, car rental" },
+            healthcare: { amount: 180, description: "St. Luke's, Makati Med level" },
+            entertainment: { amount: 350, description: "Golf, resorts, travel" },
+            utilities: { amount: 150, description: "Full A/C, premium services" },
+          },
+        },
+      },
     },
     visa: {
       type: 'SRRV (Special Resident Retiree Visa)',
@@ -600,6 +847,44 @@ export const countries: Country[] = [
         frugal: 1800,
         moderate: 2500,
         comfortable: 4000,
+      },
+      lifestyles: {
+        frugal: {
+          total: 1800,
+          description: "Simple living in smaller cities like Braga or Coimbra",
+          breakdown: {
+            housing: { amount: 600, description: "Studio or room in older building" },
+            food: { amount: 350, description: "Markets, cooking, local tascas" },
+            transport: { amount: 40, description: "Public transport, walking" },
+            healthcare: { amount: 80, description: "SNS public healthcare" },
+            entertainment: { amount: 100, description: "Beaches, hiking, local cafes" },
+            utilities: { amount: 100, description: "Electricity, water, internet" },
+          },
+        },
+        moderate: {
+          total: 2500,
+          description: "Comfortable life in Porto or Lisbon outskirts",
+          breakdown: {
+            housing: { amount: 1000, description: "1-bed apartment in good area" },
+            food: { amount: 450, description: "Mix of cooking and dining out" },
+            transport: { amount: 60, description: "Metro, occasional car rental" },
+            healthcare: { amount: 120, description: "Private insurance + SNS" },
+            entertainment: { amount: 200, description: "Cafes, wine, weekend trips" },
+            utilities: { amount: 130, description: "Heating, A/C, fast internet" },
+          },
+        },
+        comfortable: {
+          total: 4000,
+          description: "Premium lifestyle in central Lisbon or Porto Foz",
+          breakdown: {
+            housing: { amount: 1800, description: "Luxury apartment, prime location" },
+            food: { amount: 650, description: "Fine dining, quality groceries" },
+            transport: { amount: 150, description: "Car lease, taxi, travel" },
+            healthcare: { amount: 200, description: "Premium private healthcare" },
+            entertainment: { amount: 450, description: "Golf, wine tours, travel" },
+            utilities: { amount: 180, description: "Full climate control, premium" },
+          },
+        },
       },
     },
     visa: {
@@ -687,6 +972,44 @@ export const countries: Country[] = [
         frugal: 1500,
         moderate: 2200,
         comfortable: 3500,
+      },
+      lifestyles: {
+        frugal: {
+          total: 1500,
+          description: "Simple living in rural areas or smaller cities like Fukuoka",
+          breakdown: {
+            housing: { amount: 400, description: "Small apartment in local area" },
+            food: { amount: 350, description: "Supermarket bento, cooking, ramen" },
+            transport: { amount: 80, description: "Local trains, bicycle" },
+            healthcare: { amount: 80, description: "National health insurance" },
+            entertainment: { amount: 100, description: "Temples, nature, onsen" },
+            utilities: { amount: 120, description: "Gas, electricity, internet" },
+          },
+        },
+        moderate: {
+          total: 2200,
+          description: "Comfortable life in Osaka or Tokyo suburbs",
+          breakdown: {
+            housing: { amount: 700, description: "1K/1DK apartment near station" },
+            food: { amount: 450, description: "Mix of cooking and izakayas" },
+            transport: { amount: 120, description: "Train pass, occasional taxi" },
+            healthcare: { amount: 120, description: "NHI + supplemental insurance" },
+            entertainment: { amount: 200, description: "Cafes, cultural events, travel" },
+            utilities: { amount: 150, description: "Heating/cooling, fast internet" },
+          },
+        },
+        comfortable: {
+          total: 3500,
+          description: "Premium lifestyle in central Tokyo or Kyoto",
+          breakdown: {
+            housing: { amount: 1300, description: "Modern apartment in prime area" },
+            food: { amount: 600, description: "Fine dining, quality ingredients" },
+            transport: { amount: 200, description: "Green car, taxi, shinkansen" },
+            healthcare: { amount: 180, description: "Premium private clinics" },
+            entertainment: { amount: 450, description: "Ryokan, golf, cultural experiences" },
+            utilities: { amount: 200, description: "Full amenities, premium services" },
+          },
+        },
       },
     },
     visa: {
